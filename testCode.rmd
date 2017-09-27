@@ -1,0 +1,15 @@
+#Test file
+
+getwd()
+dat <- read.csv("/group/bprice5/1314C-08.CSV", header = TRUE)
+
+#list all the variables    
+names(dat)
+
+#permanent location    
+summary(dat$PERM.CITY)   
+summary(dat$PERM.STATE)   
+
+#mailing location   
+summary(dat$MAIL.CITY)   
+summary(dat$MAIL.STATE)   

@@ -1,0 +1,120 @@
+---
+title: "test"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+#load("~/group/bprice5/BUDA525-Final-Project/.RData")
+
+names(dat)
+
+#Create subset of data with only First Time Freshmen (FTF)
+firstTimeFresh <- dat[which(dat$GS.ADMIT.TYPE.DESC == "First Time Freshman"),]
+dim(firstTimeFresh)
+
+
+#Some majors have 0 FTFs in it, create subset of FTF w/ any majors
+degreeF <- firstTimeFresh$GS.DEGREE.DESC
+summary(degreeF) #Shows degrees w/ 0 students in it
+degreeF <- factor(degreeF) #Excludes unused levels 
+summary(degreeF) #All majors have at least 1 student it in
+levels(degreeF)
+prop.table(table(degreeF))
+
+
+install.packages("dae")
+library(dae)
+fac.combine()
+
+
+#Personal: sex
+studentSex <- as.factor(firstTimeFresh$SEX.CODE)
+summary(studentSex)
+levels(studentSex)
+
+#Personal: ethnicity
+studentEthn <- factor(firstTimeFresh$ETHNIC.CODE, labels = c("white", "black", "hispanic", "asian", "native", "unknown"))
+summary(studentEthn)
+levels(studentEthn)
+
+#We now have a subpopulation of all students containing only first time freshman
+#We can split it into sex factors, ethnicity factors, and 31 different degrees
+
+
+#Define 21 different grant types
+
+#Federal aid 
+fedDirLoan_unsub <- firstTimeFresh$FED.DIRECT.LOAN....UNSUBSIDIZED
+fedDirLoan_sub <- firstTimeFresh$FED.DIRECT.LOAN....SUBSIDIZED
+fedDirPlus <- firstTimeFresh$FED.DIRECT.PLUS
+fedPellGrant <- firstTimeFresh$FED.PELL.GRANT
+fedSupOpp <- firstTimeFresh$FED.SUPPL.ED.OPP
+fedOther <- firstTimeFresh$OTHER.FED.GRANTS.AND.SCHOLARS + firstTimeFresh$OTHER.FED.LOANS
+
+#Misc grants 
+rule49Grant <- firstTimeFresh$PROC..RULE.NO..49.GR...PR.TUI.FEE.WAIVS + firstTimeFresh$PROC..RULE.NO..49.UG.TUI.FEE.WAIV.ACAD + firstTimeFresh$PROC..RULE.NO..49.UG.TUI.FEE.WAIV.ATHL + firstTimeFresh$PROC..RULE.NO..49.UG.TUI.FEE.WAIV.NEED...OTHER
+miscGrants <- firstTimeFresh$MISC.GRANTS.AND.SCHOLARS
+outOfStateGrant <- firstTimeFresh$OUT.OF.STATE.GRANTS.AND.SCHOLARS
+medStudLoan <- firstTimeFresh$MED.STUDENT.LOAN
+
+#Inst grants 
+instEmployAid <- firstTimeFresh$INST.EMPLOYMENT
+instGrantAcademic <- firstTimeFresh$INST.GRANTS.AND.SCHOLARS.ACADEMIC
+instGrantAthletic <- firstTimeFresh$INST.GRANTS.AND.SCHOLARS.ATHLETIC
+instGrantOther <- firstTimeFresh$INST.GRANTS.AND.SCHOLARS.OTHER
+
+#West Virgina grants
+wvHigherEdGrant <- firstTimeFresh$WV.HIGHER.ED.GRANT.PROG
+promScholars <- firstTimeFresh$PROMISE.SCHOLARS
+wvOther <- firstTimeFresh$OTHER.WV.STATE.GRANTS.AND.SCHOLARS
+
+#Now we need to know how the different loans got allocated to the different student groups
+#Will use degreeF, studentEthn and studentSex
+
+#first need a subset of data that includes only the financial variables
+finDataTable <- cbind.data.frame(fedDirLoan_unsub, fedDirLoan_sub, fedDirPlus, fedPellGrant, fedSupOpp, fedOther, rule49Grant, miscGrants, outOfStateGrant, medStudLoan, instEmployAid, instGrantAcademic, instGrantAthletic, instGrantOther, wvHigherEdGrant, promScholars, wvOther)
+
+summary(finDataTable)
+
+#add the factor variables to finDataTable
+degreeF -> finDataTable$degree
+studentSex -> finDataTable$studentSex
+studentEthn -> finDataTable$studentEthn
+
+head(finDataTable)
+
+#create a function to summarize mean of the data
+summaryTable <- function(a = NULL, table1 = NULL, list1 = list(studentSex, studentEthn), func = mean) {
+  table1 <- tapply(a, list1, func)
+  print(table1)
+}
+names(finDataTable)
+
+#Are there any loans that are not assigned to any FTF student?
+for(i in 1:17){
+  print(colnames(finDataTable[i]))
+  summaryTable(finDataTable[,i], list1, func = mean)
+  writeLines("")
+}
+#medStudLoan is not assigned to any FTF student
+
+#Are there any degrees that receive no loans?
+summaryTable <- function(a = NULL, table1 = NULL, list1 = list(degreeF, studentSex), func = mean) {
+  table1 <- tapply(a, list1, func)
+  print(table1)
+}
+
+for(i in 1:17){
+  print(colnames(finDataTable[i]))
+  summaryTable(finDataTable[,i], list1, func = mean)
+  writeLines("")
+}
+#Elec eng doesn't receive any loans
+#Can remove elec engineering from degrees and can remove med from loans
+
+```

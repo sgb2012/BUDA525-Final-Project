@@ -14,7 +14,14 @@ if(dat$MAIL.STATE=="WV"){
   print("N")
 }
 
+###Create indicator for legacy students (in this case any legacy indicator)
 
+dat$LEGACY<-as.numeric(dat$LEGACY)
+if(dat$LEGACY>0){
+print("Y")
+}else{
+print("N")
+}
 
 
 

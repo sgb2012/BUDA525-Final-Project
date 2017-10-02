@@ -1,0 +1,125 @@
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+dat <- read.table(file.choose(),sep="\t",header=T)
+
+getwd()
+##first set path to /group/bprice5
+### Image of how to
+data<- read.csv("/group/bprice5/1314C-08.CSV",header=T)
+head(data)
+summary(data)
+dim(data)
+which(data$YELLOW.RIBBON.IND == "Y")  #show which columns have "Y" or yes in them.  Might want to remove these from the master dataset.
+
+
+```
+
+
+
+```{r}
+summary(data$SEX.CODE)
+
+```
+
+```{r}
+##Subset the Academic variables
+###Weighted GPA Indicator
+###High School GPA                    
+###Previous College GPA
+###ACT Sum of Standard Scores (from Highest A05)
+###SAT Total (Highest SMV)
+###Highest ACT English
+###Highest ACT Math
+###Highest ACT Reading
+###Highest ACT Science Reasoning
+###Highest ACT Sum of Standard Scores
+###Highest SAT Verbal
+###Highest SAT Math
+###GRE Verbal (MAX)
+###GRE Quantitative (MAX)
+###GRE Analytical (MAX)
+###GRE Writing Assessment
+###GRE Chemistry Total
+###GRE Computer Science Total
+###GRE Engineering Total
+###GRE Mathematics Total
+###GED Score
+
+
+academicachievementvars <- c("WEIGHTED.GPA.IND", "HIGH.SCHOOL.GPA", "PREVIOUS.COLL.GPA", "ACT.SUM.OF.STANDARD.SCORES..FROM.HIGHEST.A05.", "SAT.TOTAL..HIGHEST.SMV.", "HIGHEST.ACT.ENGL", "HIGHEST.ACT.MATH", "HIGHEST.ACT.READING", "HIGHEST.ACT.SCI.REASON", "HIGHEST.ACT.SUM.OF.STANDARD.SCORES", "HIGHEST.SAT.VERBAL", "HIGHEST.SAT.MATH", "GRE.VERBAL..MAX.", "GRE.QUANT..MAX.", "GRE.ANALYTIC..MAX.", "GRE.WRITING.ASSESS", "GRE.CHEM.TOTAL", "GRE.COMP.SCI.TOTAL", "GRE.ENGR.TOTAL", "GRE.MATH.TOTAL", "GED.SCORE")
+academicachievementdata <- data[academicachievementvars]
+head(academicachievementdata)
+
+```
+
+
+GRE is a graduate level, option and the individual categories for SAT and ACT are not as valuable to us for calculating the Academic Achievement.  Below is a simplified version of the data.
+```{r}
+##Subset the Academic variables simplified 
+###Weighted GPA Indicator
+###High School GPA                    
+###Previous College GPA
+###ACT Sum of Standard Scores (from Highest A05)
+###SAT Total (Highest SMV)
+###GED Score
+
+
+acAchievementVars <- c("WEIGHTED.GPA.IND", "HIGH.SCHOOL.GPA", "PREVIOUS.COLL.GPA", "ACT.SUM.OF.STANDARD.SCORES..FROM.HIGHEST.A05.", "SAT.TOTAL..HIGHEST.SMV.", "GED.SCORE")
+acAchievementData <- data[acAchievementVars]
+head(acAchievementData)
+summary(acAchievementData)
+
+```
+
+```{r}
+#Now deal with the blank values and NA's
+acAchievementData$WEIGHTED.GPA.IND.NA <- is.na(data$WEIGHTED.GPA.IND)
+acAchievementData$HIGH.SCHOOL.GPA.NA <- is.na(data$HIGH.SCHOOL.GPA)
+acAchievementData$PREVIOUS.COLL.GPA.NA <- is.na(data$PREVIOUS.COLL.GPA)
+acAchievementData$ACT.SUM.OF.STANDARD.SCORES..FROM.HIGHEST.A05..NA <- is.na(data$ACT.SUM.OF.STANDARD.SCORES..FROM.HIGHEST.A05.)
+acAchievementData$SAT.TOTAL..HIGHEST.SMV..NA <- is.na(data$SAT.TOTAL..HIGHEST.SMV.)
+acAchievementData$GED.SCORE.NA <- is.na(data$GED.SCORE)
+
+acAchievementData$WEIGHTED.GPA.IND[is.na(data$WEIGHTED.GPA.IND)] = 0
+acAchievementData$HIGH.SCHOOL.GPA[is.na(data$HIGH.SCHOOL.GPA)] = 0
+acAchievementData$PREVIOUS.COLL.GPA[is.na(data$PREVIOUS.COLL.GPA)] = 0
+acAchievementData$ACT.SUM.OF.STANDARD.SCORES..FROM.HIGHEST.A05.[is.na(data$ACT.SUM.OF.STANDARD.SCORES..FROM.HIGHEST.A05.)] = 0
+acAchievementData$SAT.TOTAL..HIGHEST.SMV.[is.na(data$SAT.TOTAL..HIGHEST.SMV.)] = 0
+acAchievementData$GED.SCORE[is.na(data$GED.SCORE)] = 0
+
+summary(acAchievementData)
+
+###All of the NAs are taken care of
+
+
+```{r}
+#Now deal with the blank values and NA's on Academic Achievement variables within the "data" dataset
+data$WEIGHTED.GPA.IND.NA <- is.na(data$WEIGHTED.GPA.IND)
+data$HIGH.SCHOOL.GPA.NA <- is.na(data$HIGH.SCHOOL.GPA)
+data$PREVIOUS.COLL.GPA.NA <- is.na(data$PREVIOUS.COLL.GPA)
+data$ACT.SUM.OF.STANDARD.SCORES..FROM.HIGHEST.A05..NA <- is.na(data$ACT.SUM.OF.STANDARD.SCORES..FROM.HIGHEST.A05.)
+data$SAT.TOTAL..HIGHEST.SMV..NA <- is.na(data$SAT.TOTAL..HIGHEST.SMV.)
+data$GED.SCORE.NA <- is.na(data$GED.SCORE)
+
+data$WEIGHTED.GPA.IND[is.na(data$WEIGHTED.GPA.IND)] = 0
+data$HIGH.SCHOOL.GPA[is.na(data$HIGH.SCHOOL.GPA)] = 0
+data$PREVIOUS.COLL.GPA[is.na(data$PREVIOUS.COLL.GPA)] = 0
+data$ACT.SUM.OF.STANDARD.SCORES..FROM.HIGHEST.A05.[is.na(data$ACT.SUM.OF.STANDARD.SCORES..FROM.HIGHEST.A05.)] = 0
+data$SAT.TOTAL..HIGHEST.SMV.[is.na(data$SAT.TOTAL..HIGHEST.SMV.)] = 0
+data$GED.SCORE[is.na(data$GED.SCORE)] = 0
+
+summary(data$HIGH.SCHOOL.GPA) ##test to see if it worked.
+
+##sample model on how to show this against financial aid
+install.packages("car")
+library(car)
+financialImpactTestMod <- lm(PROMISE.SCHOLARS ~ WEIGHTED.GPA.IND*WEIGHTED.GPA.IND.NA + HIGH.SCHOOL.GPA*HIGH.SCHOOL.GPA.NA + PREVIOUS.COLL.GPA*PREVIOUS.COLL.GPA.NA + ACT.SUM.OF.STANDARD.SCORES..FROM.HIGHEST.A05.*ACT.SUM.OF.STANDARD.SCORES..FROM.HIGHEST.A05..NA + SAT.TOTAL..HIGHEST.SMV.*SAT.TOTAL..HIGHEST.SMV..NA + GED.SCORE*GED.SCORE.NA, data = data)
+
+plot(financialImpactTestMod)
+
+```
+

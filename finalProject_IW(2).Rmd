@@ -1,0 +1,142 @@
+---
+title: "Final Project"
+author: "Ivone Wardell"
+date: "10/1/2017"
+output: html_document
+---
+
+```{r}
+#load("~/group/bprice5/BUDA525-Final-Project/.RData")
+
+names(dat)
+
+#Additional packages
+install.packages("dae") #Allows combining factors
+library(dae)
+
+#Subpopulations we want to work with
+#SubPop 1. First Time Freshman
+#Create subset of data with only First Time Freshmen (firstTimeFresh)
+firstTimeFresh <- dat[which(dat$GS.ADMIT.TYPE.DESC == "First Time Freshman"),]
+dim(firstTimeFresh)
+
+#Can create other subpopulations if needed (grad students, seniors, etc)
+
+#Dependent variables
+#Personal attributes
+#1. Gender (studentGender)
+studentGender <- as.factor(firstTimeFresh$SEX.CODE)
+summary(studentGender)
+levels(studentGender)
+
+#2. Ethnicity (studentEthn)
+studentEthn <- factor(firstTimeFresh$ETHNIC.CODE, labels = c("White", "Black", "Hispanic", "Asian", "Native", "Unknown"))
+summary(studentEthn)
+levels(studentEthn)
+
+#3. Major (degreeF)
+degreeF <- firstTimeFresh$GS.DEGREE.DESC
+summary(degreeF) #Shows degrees w/ 0 students in it
+degreeF <- factor(degreeF) #Excludes unused levels 
+summary(degreeF) #All majors have at least 1 student it in
+levels(degreeF)
+
+#4. Type of major (degreeType)
+#Some majors are associates, and some are bachelors, want to split assocDegree and bachelDegree and otherDegree
+assocDegree1 <- factor(degreeF == "Associate of Applied Sci")
+assocDegree2 <- factor(degreeF == "Associate of Arts")
+notDecDegree <- factor(degreeF == "Degree Not Declared")
+regDegree <- factor(degreeF == "Regents Bachelor of Arts")
+
+#summary(assocDegree1)
+#summary(assocDegree2)
+#summary(notDecDegree)
+#summary(regDegree)
+
+degreeType <- fac.combine(list(assocDegree1, assocDegree2, notDecDegree, regDegree))
+degreeType <- factor(degreeType, labels = c("Bachelor Degree", "Regent Degree", "Degree Not Declared", "Associate Arts", "Associate Applied Sci"))
+summary(degreeType)
+levels(degreeType)
+
+#Location attributes
+#1. Student location by state (studentLoc)
+studentLoc <- as.factor(firstTimeFresh$MAIL.STATE)
+summary(studentLoc)
+levels(studentLoc)
+studentLoc <- factor(studentLoc) #remove unused levels
+summary(studentLoc)
+prop.table(table(studentLoc)) #50% of the students come from WV 
+
+#2. In and out of state indicator (stateIndicator)
+stateIndicator <- factor(studentLoc == "WV", labels = c("Out-of-State", "In-State"))
+summary(stateIndicator)
+
+#3. Proximity indicator (proxStudentType)
+#Assumptions:
+#In-state students will commute to Morgantown, the furthest out, the more the student will require assistance, after a certain distance, it makes no sense to commute and we can assume the student will move to Morgantown. 
+#Assume the population from Monongalia will commute
+#Assume the population from the following counties will also commute (~1 hour) and should be eligible for additional assistance: Preston, Taylor, Marion
+#For all counties outside of this radius we assume would move to Morgantown
+
+#Monongalia == shortCommuteStudent
+#Preston, Taylor, Marion == longCommuteStudent
+#Every other in-state counties == resStudent
+shortCommuteStudent <- factor(firstTimeFresh$MAIL.CNTY.DESC == "Monongalia, WV")
+longCommuteStudent <- factor(firstTimeFresh$MAIL.CNTY.DESC == "Preston, WV" | firstTimeFresh$MAIL.CNTY.DESC == "Taylor, WV" | firstTimeFresh$MAIL.CNTY.DESC == "Marion, WV")
+
+summary(shortCommuteStudent) #1529
+summary(longCommuteStudent) #227
+
+proxStudentType <- fac.combine(list(shortCommuteStudent, longCommuteStudent))
+summary(resStudentType)
+proxStudentType <- factor(proxStudentType, labels = c("Res or Out-of-State", "Long Commute", "Short Commute"))
+
+#Affordability attributes
+#Scott
+
+#Academic Achievement attributes
+#Jordon
+
+#Independent variables
+#Define 21 different grant types - this code only works for FTF, rework the code later to be able to work with any subpopulation we want
+#Federal aid 
+fedDirLoan_unsub <- firstTimeFresh$FED.DIRECT.LOAN....UNSUBSIDIZED
+fedDirLoan_sub <- firstTimeFresh$FED.DIRECT.LOAN....SUBSIDIZED
+fedDirPlus <- firstTimeFresh$FED.DIRECT.PLUS
+fedPellGrant <- firstTimeFresh$FED.PELL.GRANT
+fedSupOpp <- firstTimeFresh$FED.SUPPL.ED.OPP
+fedOther <- firstTimeFresh$OTHER.FED.GRANTS.AND.SCHOLARS + firstTimeFresh$OTHER.FED.LOANS
+
+#Misc grants 
+miscGrants <- firstTimeFresh$MISC.GRANTS.AND.SCHOLARS
+outOfStateGrant <- firstTimeFresh$OUT.OF.STATE.GRANTS.AND.SCHOLARS
+medStudLoan <- firstTimeFresh$MED.STUDENT.LOAN
+
+#WVU grants
+rule49Grant <- firstTimeFresh$PROC..RULE.NO..49.GR...PR.TUI.FEE.WAIVS + firstTimeFresh$PROC..RULE.NO..49.UG.TUI.FEE.WAIV.ACAD + firstTimeFresh$PROC..RULE.NO..49.UG.TUI.FEE.WAIV.ATHL + firstTimeFresh$PROC..RULE.NO..49.UG.TUI.FEE.WAIV.NEED...OTHER
+instEmployAid <- firstTimeFresh$INST.EMPLOYMENT
+instGrantAcademic <- firstTimeFresh$INST.GRANTS.AND.SCHOLARS.ACADEMIC
+instGrantAthletic <- firstTimeFresh$INST.GRANTS.AND.SCHOLARS.ATHLETIC
+instGrantOther <- firstTimeFresh$INST.GRANTS.AND.SCHOLARS.OTHER
+
+#West Virgina (state) grants
+wvHigherEdGrant <- firstTimeFresh$WV.HIGHER.ED.GRANT.PROG
+promScholars <- firstTimeFresh$PROMISE.SCHOLARS
+wvOther <- firstTimeFresh$OTHER.WV.STATE.GRANTS.AND.SCHOLARS
+
+#Build our data of independent and dependent variables
+#WVU financial aid variables - will have to be combined into 1 independent variable
+finDataTableWVU <- cbind.data.frame(rule49Grant, instEmployAid, instGrantAcademic, instGrantAthletic, instGrantOther)
+
+#Add the dependent variables to finDataTable
+studentGender -> finDataTableWVU$studentGender
+studentEthn -> finDataTableWVU$studentEthn
+degreeF -> finDataTableWVU$degreeF
+degreeType -> finDataTableWVU$degreeType
+studentLoc -> finDataTableWVU$studentLoc
+stateIndicator -> finDataTableWVU$stateIndicator
+proxStudentType -> finDataTableWVU$proxStudenType
+
+summary(finDataTableWVU)
+
+```

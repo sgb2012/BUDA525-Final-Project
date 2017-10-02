@@ -1,0 +1,23 @@
+##Flagged variables
+
+summary(dat$MAIL.STATE)
+summary(dat$PERM.NATN.DESC)
+summary(dat$LEGACY.DESC)
+
+###Create indicator for in state/out of state students
+
+dat$MAIL.STATE<-as.factor(dat$MAIL.STATE)
+head(dat$MAIL.STATE)
+if(dat$MAIL.STATE=="WV"){
+  print("Y")
+}else{
+  print("N")
+}
+
+
+
+
+
+
+
+

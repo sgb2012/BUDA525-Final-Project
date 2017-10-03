@@ -15,13 +15,20 @@ if(dat$MAIL.STATE=="WV"){
 }
 
 ###Create indicator for legacy students (in this case any legacy indicator)
+###This was modeled in the same format Ivone created on her RMD
 
-dat$LEGACY<-as.numeric(dat$LEGACY)
-if(dat$LEGACY>0){
-print("Y")
-}else{
-print("N")
-}
+studentLegacy<-as.factor(firstTimeFresh$LEGACY.DESC,labels=c("*No Family Member is Alumnus","Brother","Daughter","Father and Mother are Alumni","Father is Alumnus","Grandparent is Alumnus","Husband is Alumnus","Mother is Alumnus","Sister","Son","Wife is Alumnus"))
+summary(studentLegacy)
+levels(studentLegacy)
+
+nonlegacyStudent<-factor(firstTimeFresh$LEGACY.DESC==""|firstTimeFresh$LEGACY.DESC=="*No Family Member is Alumnus")
+summary(nonlegacyStudent)
+
+> summary(nonlegacyStudent)
+FALSE  TRUE 
+ 3718  4872
+
+
 
 
 

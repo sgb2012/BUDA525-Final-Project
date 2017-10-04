@@ -88,7 +88,7 @@ summary(shortCommuteStudent) #1529
 summary(longCommuteStudent) #227
 
 proxStudentType <- fac.combine(list(shortCommuteStudent, longCommuteStudent))
-summary(resStudentType)
+summary(proxStudentType)
 proxStudentType <- factor(proxStudentType, labels = c("Res or Out-of-State", "Long Commute", "Short Commute"))
 
 #Affordability attributes
@@ -128,6 +128,19 @@ wvOther <- firstTimeFresh$OTHER.WV.STATE.GRANTS.AND.SCHOLARS
 #WVU financial aid variables - will have to be combined into 1 independent variable
 finDataTableWVU <- cbind.data.frame(rule49Grant, instEmployAid, instGrantAcademic, instGrantAthletic, instGrantOther)
 
+#Calculate total WVU award pool
+totalAwardWVU <- rule49Grant + instEmployAid + instGrantAcademic + instGrantAthletic + instGrantOther
+sum(totalAwardWVU)
+#The total WVU award amount for the years 2013-14 for first time freshman is 18.5$MM
+
+#Calculate total non WVU award pool
+totalAwardnonWVU <- fedDirLoan_unsub + fedDirLoan_sub + fedDirPlus + fedPellGrant + fedSupOpp  + fedOther + miscGrants + outOfStateGrant + medStudLoan + wvHigherEdGrant + promScholars + wvOther
+sum(totalAwardnonWVU) #66.5$MM
+
+#Calculate Promise Scholar award
+totalAwardScholar <- promScholars
+sum(totalAwardScholar) #7.5$MM
+
 #Add the dependent variables to finDataTable
 studentGender -> finDataTableWVU$studentGender
 studentEthn -> finDataTableWVU$studentEthn
@@ -135,8 +148,74 @@ degreeF -> finDataTableWVU$degreeF
 degreeType -> finDataTableWVU$degreeType
 studentLoc -> finDataTableWVU$studentLoc
 stateIndicator -> finDataTableWVU$stateIndicator
-proxStudentType -> finDataTableWVU$proxStudenType
+proxStudentType -> finDataTableWVU$proxStudentType
 
 summary(finDataTableWVU)
+
+#add totalAwardWVU, totalAwardnonWVU to our finDataWVU table
+totalAwardWVU -> finDataTableWVU$totalAwardWVU
+totalAwardnonWVU -> finDataTableWVU$totalAwardnonWVU
+totalAwardScholar -> finDataTableWVU$totalAwardPromScholar
+summary(finDataTableWVU)
+
+#Identify subset of students that received WVU aid, Other aid, are Promise students
+aidStudentWVU <- factor(finDataTableWVU$totalAwardWVU > 0, labels = c("Did not received WVU aid", "Received WVU aid"))
+aidStudentnonWVU <- factor(finDataTableWVU$totalAwardnonWVU > 0, labels = c("Did not received other aid", "Received other aid"))
+aidStudentPromScholar <- factor(finDataTableWVU$totalAwardPromScholar > 0, labels = c("Is not Promise", "Is Promise"))
+
+aidStudentWVU -> finDataTableWVU$aidStudentWVU
+aidStudentnonWVU -> finDataTableWVU$aidStudentnonWVU
+aidStudentPromScholar -> finDataTableWVU$aidStudentPromScholar
+
+#create new table with only students that have been awarded > 4000
+finDataTableWVU_AL1 <- subset(finDataTableWVU, totalAwardWVU > 40000)
+summary(finDataTableWVU_AL1)
+
+#AL2
+finDataTableWVU_AL2 <- subset(finDataTableWVU, totalAwardWVU > 20000 & totalAwardWVU <= 40000)
+summary(finDataTableWVU_AL2)
+
+#AL3
+finDataTableWVU_AL3 <- subset(finDataTableWVU, totalAwardWVU > 10000 & totalAwardWVU <= 20000)
+summary(finDataTableWVU_AL3)
+
+#AL4
+finDataTableWVU_AL4 <- subset(finDataTableWVU, totalAwardWVU > 5000 & totalAwardWVU <= 10000)
+summary(finDataTableWVU_AL4)
+
+#AL5
+finDataTableWVU_AL5 <- subset(finDataTableWVU, totalAwardWVU > 1000 & totalAwardWVU <= 5000)
+summary(finDataTableWVU_AL5)
+
+#AL6
+finDataTableWVU_AL6 <- subset(finDataTableWVU, totalAwardWVU > 500 & totalAwardWVU <= 1000)
+summary(finDataTableWVU_AL6)
+
+#AL7  
+finDataTableWVU_AL7 <- subset(finDataTableWVU, totalAwardWVU > 100 & totalAwardWVU <= 500)
+summary(finDataTableWVU_AL7)
+
+#AL8  
+finDataTableWVU_AL8 <- subset(finDataTableWVU, totalAwardWVU > 0 & totalAwardWVU <= 100)
+summary(finDataTableWVU_AL8)
+
+#Descriptive stats
+
+#create a function to summarize mean of the data
+summaryTable <- function(a = NULL, table1 = NULL, list1 = list(studentGender), func = mean) {
+  table1 <- tapply(a, list1, func)
+  print(table1)
+} 
+
+#Student attributes
+#studentGender, studentEthn, degreeF, degreeType, studentLoc, stateIndicator, proxStudentType
+
+for(i in 13:15){
+  print(colnames(finDataTableWVU[i]))
+  summaryTable(finDataTableWVU[,i], list1, func = mean)
+  writeLines("")
+}
+
+
 
 ```

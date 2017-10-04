@@ -16,17 +16,50 @@ Install packages that includes the rescale function
 ```{r}
 install.packages("scales")
 library(scales)
+
+install.packages("gsubfn")
+library(gsubfn)
 ```
 
-The academic factors are:
+The academic achievement variables from the data are:
 ```{r}
-#WEIGHTED.GPA.IND
 #HIGH.SCHOOL.GPA
 #PREVIOUS.COLL.GPA
 #HIGHEST.ACT.SUM.OF.STANDARD.SCORES
 #SAT.TOTAL..HIGHEST.SMV.
 #GED.SCORE
-#GED.SCORE.FACTOR <- as.factor
+
+#Not all of these variables are ready for analysis, so this section will work on getting them ready.
+
+#HIGH.SCHOOL.GPA
+#go ahead and Weight the Unweighted HIGH.SCHOOL.GPAs from 0 to 5.0 instead of 0 to 4.0 while referencing WEIGHTED.GPA.IND variable.
+data$HIGH.SCHOOL.GPA.EVENED <- ifelse((data$WEIGHTED.GPA.IND=="NW") & (data$HIGH.SCHOOL.GPA                             <=4), data$HIGH.SCHOOL.GPA * 1.25,
+                          ifelse(data$WEIGHTED.GPA.IND=="W",data$HIGH.SCHOOL.GPA * 1,
+                          NA  ))
+summary(data$HIGH.SCHOOL.GPA.EVENED)
+
+#PREVIOUS.COLL.GPA
+#Need to mark the values that are greater than 5.0 as NA.  This is invalid information.
+
+
+summary(data$PREVIOUS.COLL.GPA.TRIMMED)
+
+
+
+
+#remove the "G" from GED.SCORE to create a numeric value for scaling
+data$GED.SCORE.NUMERIC <- gsub("G","",data$GED.SCORE)
+data$GED.SCORE.NUMERIC <- as.numeric(as.character(data$GED.SCORE.NUMERIC))
+summary(data$GED.SCORE.NUMERIC) # worked.  Values 0 to 75.
+
+
+
+#The 5 academic variables that we will use are:
+#HIGH.SCHOOL.GPA.EVENED - Values 1.25 to 5.00
+#PREVIOUS.COLL.GPA
+#HIGHEST.ACT.SUM.OF.STANDARD.SCORES
+#SAT.TOTAL..HIGHEST.SMV.
+#GED.SCORE - Values 0 to 75.
 ```
 
 

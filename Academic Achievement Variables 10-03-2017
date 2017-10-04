@@ -12,7 +12,7 @@ data<- read.csv("/group/bprice5/1314C-08.CSV",header=T)
 head(data)
 dim(data)
 ```
-Install packages that includes the rescale function
+Install packages that include the rescale function and gsubfn that we need for sorting the academic variables.
 ```{r}
 install.packages("scales")
 library(scales)
@@ -30,7 +30,7 @@ The academic achievement variables from the data are:
 #SAT.TOTAL..HIGHEST.SMV.
 #GED.SCORE
 
-#Not all of these variables are ready for analysis, so this section will work on checking through each academic achievement variable and getting them ready.
+#Not all of these variables are ready for analysis, so this section will work on checking through each academic achievement variable and getting it ready.
 
 #HIGH.SCHOOL.GPA
 #go ahead and Weight the Unweighted HIGH.SCHOOL.GPAs from 0 to 5.0 instead of 0 to 4.0 while referencing WEIGHTED.GPA.IND variable.
@@ -67,7 +67,7 @@ summary(data$GED.SCORE.NUMERIC) # worked.  Values 0 to 75.
 ```
 
 
-Now that we have the 4 academic achievement variables formatted properly, we can scale the academic variables from 0 to 100 to create an even scale.
+Now that we have the 5 academic achievement variables formatted properly, we can scale the academic variables from 0 to 100 to create an even scale.
 ```{r}
 data$HIGH.SCHOOL.GPA.PERCENTILE<-rescale(data$HIGH.SCHOOL.GPA.EVENED, to = c(0,100))
 data$PREVIOUS.COLL.GPA.PERCENTILE<-rescale(data$PREVIOUS.COLL.GPA.TRIMMED, to = c(0,100))
@@ -77,7 +77,7 @@ data$GED.SCORE.PERCENTILE <- rescale(data$GED.SCORE.NUMERIC, to = c(0,100))
 ```
 
 
-The 5 academic achievement variables are now on each shown on a percentile scale of 0 to 100. Now we just need to get the (count of which 5 academic variables in each row are not NA) and use this to divide the (sum of the 5 academic variables in each row) to create the SCALED.ACADEMIC.ACHIEVEMENT variable that will be between 0 to 100 for each student.
+The 5 academic achievement variables are now each on a percentile scale of 0 to 100. We just need to get the (count of which 5 academic variables in each row that are not NA) and use this to divide the (sum of the 5 academic variables in each row) to create the SCALED.ACADEMIC.ACHIEVEMENT variable that will be between 0 to 100 for each student.
 ```{r}
 # First Sum the 5 variables together
 data$SUM.ACADEMIC.ACHIEVEMENT.VARS <- rowSums(data[, c("HIGH.SCHOOL.GPA.PERCENTILE", "PREVIOUS.COLL.GPA.PERCENTILE", "HIGHEST.ACT.SUM.OF.STANDARD.SCORES.PERCENTILE", "SAT.TOTAL..HIGHEST.SMV.PERCENTILE", "GED.SCORE.PERCENTILE")], na.rm = TRUE)
@@ -93,7 +93,14 @@ summary(data$SCALED.ACADEMIC.ACHIEVEMENT)
 
 ```
 
-
+So, for Ivonne's table, the best variables to use are:
+#SCALED.ACADEMIC.ACHIEVEMENT
+###HIGH.SCHOOL.GPA.PERCENTILE
+###PREVIOUS.COLL.GPA.PERCENTILE
+###HIGHEST.ACT.SUM.OF.STANDARD.SCORES.PERCENTILE
+###SAT.TOTAL..HIGHEST.SMV.PERCENTILE
+###GED.SCORE.PERCENTILE
+All of these are on a scale of 0 to 100 as a percentile of best and worst scores.
 
 
 Now deal with the blank values and NA's on Academic Achievement variables within the "data" dataset so that we can use these if needed.

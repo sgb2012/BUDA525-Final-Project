@@ -288,3 +288,20 @@ for(i in 13:15){
 }
 
 names(finDataTableWVU)
+
+
+#Now deal with the blank values and NA's on variables within the finDataTableWVU dataset so that we can model these without excluding too many.
+finDataTableWVU$highSchoolGPA.NA <- is.na(finDataTableWVU$highSchoolGPA)
+finDataTableWVU$prevColGPA.NA <- is.na(finDataTableWVU$prevColGPA)
+finDataTableWVU$highestACT.NA <- is.na(finDataTableWVU$highestACT)
+finDataTableWVU$totalSAT.NA <- is.na(finDataTableWVU$totalSAT)
+finDataTableWVU$scoreGED.NA <- is.na(finDataTableWVU$scoreGED)
+finDataTableWVU$expectedFamContrib.NA <- is.na(finDataTableWVU$expectedFamContrib)
+
+finDataTableWVU$highSchoolGPA[is.na(finDataTableWVU$highSchoolGPA)] = 0
+finDataTableWVU$prevColGPA[is.na(finDataTableWVU$prevColGPA)] = 0
+finDataTableWVU$highestACT[is.na(finDataTableWVU$highestACT)] = 0
+finDataTableWVU$totalSAT[is.na(finDataTableWVU$totalSAT)] = 0
+finDataTableWVU$scoreGED[is.na(finDataTableWVU$scoreGED)] = 0
+finDataTableWVU$expectedFamContrib[is.na(finDataTableWVU$expectedFamContrib)] = 0
+```

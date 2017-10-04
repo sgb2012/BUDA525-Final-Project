@@ -3,7 +3,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 Read in the data
-```{r}
+```{r cache = TRUE}
 #data<- read.table(file.choose(),sep="\t",header=T)
 
 ##first set path to /group/bprice5
@@ -19,6 +19,7 @@ library(scales)
 
 install.packages("gsubfn")
 library(gsubfn)
+
 ```
 
 The academic achievement variables from the data are:
@@ -62,31 +63,47 @@ summary(data$GED.SCORE.NUMERIC) # worked.  Values 0 to 75.
 #PREVIOUS.COLL.GPA.TRIMMED - Values 0.00 to 4.00
 #HIGHEST.ACT.SUM.OF.STANDARD.SCORES - Values 33 to 142
 #SAT.TOTAL..HIGHEST.SMV. - Values 305 to 1600
-#GED.SCORE - Values 0 to 75.
+#GED.SCORE.NUMERIC - Values 0 to 75.
 ```
 
 
-Scale the academic variables from 0 to 100 before blank values are dealt with.
+Now that we have the 4 academic achievement variables formatted properly, we can scale the academic variables from 0 to 100 to create an even scale.
 ```{r}
-data$WEIGHTED.GPA.IND.PERCENTILE<-rescale(data$WEIGHTED.GPA.IND, to = c(0,100)) #works
-data$HIGH.SCHOOL.GPA.PERCENTILE<-rescale(data$HIGH.SCHOOL.GPA, to = c(0,100)) #works - but 0 to 5
-data$PREVIOUS.COLL.GPA.PERCENTILE<-rescale(data$PREVIOUS.COLL.GPA, to = c(0,100)) #works
-data$HIGHEST.ACT.SUM.OF.STANDARD.SCORES.PERCENTILE<-rescale(data$HIGHEST.ACT.SUM.OF.STANDARD.SCORES, to = c(0,100))#works
+data$HIGH.SCHOOL.GPA.PERCENTILE<-rescale(data$HIGH.SCHOOL.GPA.EVENED, to = c(0,100))
+data$PREVIOUS.COLL.GPA.PERCENTILE<-rescale(data$PREVIOUS.COLL.GPA.TRIMMED, to = c(0,100))
+data$HIGHEST.ACT.SUM.OF.STANDARD.SCORES.PERCENTILE<-rescale(data$HIGHEST.ACT.SUM.OF.STANDARD.SCORES, to = c(0,100))
 data$SAT.TOTAL..HIGHEST.SMV.PERCENTILE<-rescale(data$SAT.TOTAL..HIGHEST.SMV., to = c(0,100))
-data$GED.SCORE.PERCENTILE <- rescale(data$GED.SCORE, to = c(0,100)) #may need to complete as factor
+data$GED.SCORE.PERCENTILE <- rescale(data$GED.SCORE.NUMERIC, to = c(0,100))
 ```
 
 
-#Now deal with the blank values and NA's on Academic Achievement variables within the "data" dataset
+The 5 academic achievement variables are now on each shown on a percentile scale of 0 to 100. Now we just need to get the (count of which 5 academic variables in each row are not NA) and use this to divide the (sum of the 5 academic variables in each row) to create the SCALED.ACADEMIC.ACHIEVEMENT variable that will be between 0 to 100 for each student.
 ```{r}
-data$WEIGHTED.GPA.IND.NA <- is.na(data$WEIGHTED.GPA.IND)
+# First Sum the 5 variables together
+data$SUM.ACADEMIC.ACHIEVEMENT.VARS <- rowSums(data[, c("HIGH.SCHOOL.GPA.PERCENTILE", "PREVIOUS.COLL.GPA.PERCENTILE", "HIGHEST.ACT.SUM.OF.STANDARD.SCORES.PERCENTILE", "SAT.TOTAL..HIGHEST.SMV.PERCENTILE", "GED.SCORE.PERCENTILE")], na.rm = TRUE)
+summary(data$SUM.ACADEMIC.ACHIEVEMENT.VARS)
+
+#Second get a count of NAs within the 5 variables by row.
+data$COUNT.NA <- rowSums(is.na(data[, c("HIGH.SCHOOL.GPA.PERCENTILE", "PREVIOUS.COLL.GPA.PERCENTILE", "HIGHEST.ACT.SUM.OF.STANDARD.SCORES.PERCENTILE", "SAT.TOTAL..HIGHEST.SMV.PERCENTILE", "GED.SCORE.PERCENTILE")]))
+summary(data$COUNT.NA)
+
+#Create the SCALED.ACADEMIC.ACHIEVEMENT variable
+data$SCALED.ACADEMIC.ACHIEVEMENT <- data$SUM.ACADEMIC.ACHIEVEMENT.VARS / (5 - data$COUNT.NA)
+summary(data$SCALED.ACADEMIC.ACHIEVEMENT)
+
+```
+
+
+
+
+Now deal with the blank values and NA's on Academic Achievement variables within the "data" dataset so that we can use these if needed.
+```{r}
 data$HIGH.SCHOOL.GPA.NA <- is.na(data$HIGH.SCHOOL.GPA)
 data$PREVIOUS.COLL.GPA.NA <- is.na(data$PREVIOUS.COLL.GPA)
 data$HIGHEST.ACT.SUM.OF.STANDARD.SCORES.NA <- is.na(data$HIGHEST.ACT.SUM.OF.STANDARD.SCORES)
 data$SAT.TOTAL..HIGHEST.SMV..NA <- is.na(data$SAT.TOTAL..HIGHEST.SMV.)
 data$GED.SCORE.NA <- is.na(data$GED.SCORE)
 
-data$WEIGHTED.GPA.IND[is.na(data$WEIGHTED.GPA.IND)] = 0
 data$HIGH.SCHOOL.GPA[is.na(data$HIGH.SCHOOL.GPA)] = 0
 data$PREVIOUS.COLL.GPA[is.na(data$PREVIOUS.COLL.GPA)] = 0
 data$HIGHEST.ACT.SUM.OF.STANDARD.SCORES[is.na(data$HIGHEST.ACT.SUM.OF.STANDARD.SCORES)] = 0

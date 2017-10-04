@@ -29,7 +29,7 @@ The academic achievement variables from the data are:
 #SAT.TOTAL..HIGHEST.SMV.
 #GED.SCORE
 
-#Not all of these variables are ready for analysis, so this section will work on getting them ready.
+#Not all of these variables are ready for analysis, so this section will work on checking through each academic achievement variable and getting them ready.
 
 #HIGH.SCHOOL.GPA
 #go ahead and Weight the Unweighted HIGH.SCHOOL.GPAs from 0 to 5.0 instead of 0 to 4.0 while referencing WEIGHTED.GPA.IND variable.
@@ -39,14 +39,17 @@ data$HIGH.SCHOOL.GPA.EVENED <- ifelse((data$WEIGHTED.GPA.IND=="NW") & (data$HIGH
 summary(data$HIGH.SCHOOL.GPA.EVENED)
 
 #PREVIOUS.COLL.GPA
-#Need to mark the values that are greater than 5.0 as NA.  This is invalid information.
-
-
+#Need to mark the values that are greater than 4.0 as NA.  This is invalid information.
+data$PREVIOUS.COLL.GPA.TRIMMED <- ifelse((data$PREVIOUS.COLL.GPA > 4),NA,data$PREVIOUS.COLL.GPA)
 summary(data$PREVIOUS.COLL.GPA.TRIMMED)
 
+#HIGHEST.ACT.SUM.OF.STANDARD.SCORES
+summary(data$HIGHEST.ACT.SUM.OF.STANDARD.SCORES)
 
+#SAT.TOTAL..HIGHEST.SMV.
+summary(data$SAT.TOTAL..HIGHEST.SMV.)
 
-
+#GED.SCORE
 #remove the "G" from GED.SCORE to create a numeric value for scaling
 data$GED.SCORE.NUMERIC <- gsub("G","",data$GED.SCORE)
 data$GED.SCORE.NUMERIC <- as.numeric(as.character(data$GED.SCORE.NUMERIC))
@@ -56,9 +59,9 @@ summary(data$GED.SCORE.NUMERIC) # worked.  Values 0 to 75.
 
 #The 5 academic variables that we will use are:
 #HIGH.SCHOOL.GPA.EVENED - Values 1.25 to 5.00
-#PREVIOUS.COLL.GPA
-#HIGHEST.ACT.SUM.OF.STANDARD.SCORES
-#SAT.TOTAL..HIGHEST.SMV.
+#PREVIOUS.COLL.GPA.TRIMMED - Values 0.00 to 4.00
+#HIGHEST.ACT.SUM.OF.STANDARD.SCORES - Values 33 to 142
+#SAT.TOTAL..HIGHEST.SMV. - Values 305 to 1600
 #GED.SCORE - Values 0 to 75.
 ```
 

@@ -13,6 +13,10 @@ names(dat)
 #Additional packages
 install.packages("dae") #Allows combining factors
 library(dae)
+install.packages("scales")
+library(scales)
+install.packages("gsubfn")
+library(gsubfn)
 
 #Subpopulations we want to work with
 #SubPop 1. First Time Freshman
@@ -47,11 +51,6 @@ assocDegree1 <- factor(degreeF == "Associate of Applied Sci")
 assocDegree2 <- factor(degreeF == "Associate of Arts")
 notDecDegree <- factor(degreeF == "Degree Not Declared")
 regDegree <- factor(degreeF == "Regents Bachelor of Arts")
-
-#summary(assocDegree1)
-#summary(assocDegree2)
-#summary(notDecDegree)
-#summary(regDegree)
 
 degreeType <- fac.combine(list(assocDegree1, assocDegree2, notDecDegree, regDegree))
 degreeType <- factor(degreeType, labels = c("Bachelor Degree", "Regent Degree", "Degree Not Declared", "Associate Arts", "Associate Applied Sci"))
@@ -95,7 +94,64 @@ proxStudentType <- factor(proxStudentType, labels = c("Res or Out-of-State", "Lo
 #Scott
 
 #Academic Achievement attributes
-#Jordon
+#The academic achievement variables from the data are:
+#HIGH.SCHOOL.GPA
+#PREVIOUS.COLL.GPA
+#HIGHEST.ACT.SUM.OF.STANDARD.SCORES
+#SAT.TOTAL..HIGHEST.SMV.
+#GED.SCORE
+
+#Not all of these variables are ready for analysis, so this section will work on checking through each academic achievement variable and getting it ready.
+
+#HIGH.SCHOOL.GPA
+#go ahead and Weight the Unweighted HIGH.SCHOOL.GPAs from 0 to 5.0 instead of 0 to 4.0 while referencing WEIGHTED.GPA.IND variable.
+highSchoolGPA <- ifelse((firstTimeFresh$WEIGHTED.GPA.IND=="NW") & (firstTimeFresh$HIGH.SCHOOL.GPA <=4), firstTimeFresh$HIGH.SCHOOL.GPA * 1.25, ifelse(firstTimeFresh$WEIGHTED.GPA.IND == "W", firstTimeFresh$HIGH.SCHOOL.GPA * 1, NA))
+
+#PREVIOUS.COLL.GPA
+#Need to mark the values that are greater than 4.0 as NA.  This is invalid information.
+prevColGPA <- ifelse((firstTimeFresh$PREVIOUS.COLL.GPA > 4), NA, firstTimeFresh$PREVIOUS.COLL.GPA)
+
+#HIGHEST.ACT.SUM.OF.STANDARD.SCORES
+highestACT <- firstTimeFresh$HIGHEST.ACT.SUM.OF.STANDARD.SCORES
+
+#SAT.TOTAL..HIGHEST.SMV.
+totalSAT <- firstTimeFresh$SAT.TOTAL..HIGHEST.SMV.
+
+#GED.SCORE
+#remove the "G" from GED.SCORE to create a numeric value for scaling
+scoreGED <- gsub("G", "", firstTimeFresh$GED.SCORE)
+scoreGED <- as.numeric(as.character(scoreGED))
+summary(scoreGED) # worked. Values 0 to 75.
+
+#The 5 academic variables that we will use are:
+#highSchoolGPA - Values 1.25 to 5.00
+#prevColGPA - Values 0.00 to 4.00
+#highestACT - Values 33 to 142
+#totalSAT - Values 305 to 1600
+#scoreGED - Values 0 to 75.
+
+#Now that we have the 5 academic achievement variables formatted properly, we can scale the academic variables from 0 to 100 to create an even scale.
+highSchoolGPA <- rescale(highSchoolGPA, to = c(0,100))
+prevColGPA <- rescale(prevColGPA, to = c(0,100))
+highestACT <- rescale(highestACT, to = c(0,100))
+totalSAT <- rescale(totalSAT, to = c(0,100))
+scoreGED <- rescale(scoreGED, to = c(0,100))
+
+#The 5 academic achievement variables are now each on a percentile scale of 0 to 100. We just need to get the (count of which 5 academic variables in each row that are not NA) and use this to divide the (sum of the 5 academic variables in each row) to create the SCALED.ACADEMIC.ACHIEVEMENT variable that will be between 0 to 100 for each student.
+
+# First Sum the 5 variables together
+academAchievSum <- cbind.data.frame(highSchoolGPA, prevColGPA, highestACT, totalSAT, scoreGED)
+academAchiev <- rowSums(academAchievSum[, c("highSchoolGPA", "prevColGPA", "highestACT", "totalSAT", "scoreGED")], na.rm = TRUE)
+summary(academAchiev)
+
+#Second get a count of NAs within the 5 variables by row.
+countNA <- rowSums(is.na(academAchievSum[, c("highSchoolGPA", "prevColGPA", "highestACT", "totalSAT", "scoreGED")]))
+summary(countNA)
+
+#Create the SCALED.ACADEMIC.ACHIEVEMENT variable
+scaledAcademAchiev <- academAchiev / (5 - countNA)
+summary(scaledAcademAchiev)
+
 
 #Independent variables
 #Define 21 different grant types - this code only works for FTF, rework the code later to be able to work with any subpopulation we want
@@ -149,6 +205,12 @@ degreeType -> finDataTableWVU$degreeType
 studentLoc -> finDataTableWVU$studentLoc
 stateIndicator -> finDataTableWVU$stateIndicator
 proxStudentType -> finDataTableWVU$proxStudentType
+highSchoolGPA -> finDataTableWVU$highSchoolGPA
+prevColGPA -> finDataTableWVU$prevColGPA
+highestACT -> finDataTableWVU$highestACT
+totalSAT -> finDataTableWVU$totalSAT
+scoreGED -> finDataTableWVU$scoreGED
+scaledAcademAchiev -> finDataTableWVU$scaledAcademAchiev
 
 summary(finDataTableWVU)
 
@@ -215,7 +277,5 @@ for(i in 13:15){
   summaryTable(finDataTableWVU[,i], list1, func = mean)
   writeLines("")
 }
-
-
 
 ```

@@ -1,5 +1,3 @@
-
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -377,20 +375,20 @@ mmp(modWVUAid, sd = TRUE)
 mmp(totalAwardWVUMod3, sd = TRUE)
 
 
-#test model predictions which(finDataTableWVU[,22] > 40000)
-
+#test model predictions 
+names(finDataTableWVU)
+which(finDataTableWVU[,21] > 40000)
 fitResults <- predict(modWVUAid, newdata = finDataTableWVU[1355,], type = "response")
 (fitResults)^2
-finDataTableWVU[1355, 22]
+finDataTableWVU[1355, 21]
 
 #Unfortunately while the models fit that data well, testing it with the predictions about show that the results do not seem to accurately predict totalAwardWVU
 ```
 
 
 Modeling students who received no WVU direct aid with those who did receive WVU aid created mixed results and lowered the quality of the prediction.  By modelling them separately, we can provide better insight to the university.
-For students who received no totalAwardWVU, we can predict what as what variables were important that caused some students not to receive any WVU aid
 
-Separately by modelling the population that did receive at least some totalAwardWVU, we can see what variables were important for increasing the amount of WVU aid received for student.
+By modeling just the population that did receive at least some totalAwardWVU we will get more accurate predicitors.  With this, we can see what variables were important for increasing the amount of WVU aid that the university decided to issue to a student.
 ```{r}
 
 #run model on subset of students that received WVU aid #AL12 Total WVU Award > 0 
@@ -425,5 +423,13 @@ plot(modWVUAid_3)
 mmp(modWVUAid_3, sd = TRUE)
 residualPlot(modWVUAid_3)
 summary(modWVUAid_3)
+
+
+#test model predictions
+names(finDataTableWVU_AL12)
+which(finDataTableWVU_AL12[,21] > 40000)
+fitResults <- predict(modWVUAid_3, newdata = finDataTableWVU_AL12[813,], type = "response")
+exp(fitResults)
+finDataTableWVU_AL12[813, 21]
 
 ```

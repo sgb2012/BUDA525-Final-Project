@@ -24,7 +24,7 @@ summary(finDataTableWVU)
 
 ```{r}
 #basic plot
-totalAwardWVUMod1 = lm(totalAwardWVU ~ studentGender + studentEthn + degreeF + degreeType + studentLoc + stateIndicator + proxStudentType + highSchoolGPA*highSchoolGPA.NA + prevColGPA*prevColGPA.NA + highestACT*highestACT.NA + totalSAT*totalSAT.NA + scoreGED*scoreGED.NA + scaledAcademAchiev + affinityStatus + expectedFamContrib, data = finDataTableWVU)
+totalAwardWVUMod1 = lm(totalAwardWVU ~ studentGender + studentEthn + degreeF + degreeType + studentLoc + stateIndicator + proxStudentType + highSchoolGPA + highSchoolGPA.NA + prevColGPA + prevColGPA.NA + highestACT + highestACT.NA + totalSAT + totalSAT.NA + scoreGED + scoreGED.NA + scaledAcademAchiev + affinityStatus + expectedFamContrib, data = finDataTableWVU)
 
 summary(totalAwardWVUMod1)
 #install the "alr4" package
@@ -37,7 +37,7 @@ residualPlot(totalAwardWVUMod1)
 summary(powerTransform(cbind(finDataTableWVU$highSchoolGPA, finDataTableWVU$prevColGPA, finDataTableWVU$highestACT, finDataTableWVU$totalSAT, finDataTableWVU$scoreGED,finDataTableWVU$scaledAcademAchiev)))
 
 #Now apply these to a new model.
-totalAwardWVUMod2 = lm(sqrt(totalAwardWVU) ~ studentGender + studentEthn + degreeF + degreeType + studentLoc + stateIndicator + proxStudentType + (highSchoolGPA^2)*highSchoolGPA.NA + prevColGPA*prevColGPA.NA + highestACT*highestACT.NA + totalSAT*totalSAT.NA + scoreGED*scoreGED.NA + affinityStatus + expectedFamContrib, data = finDataTableWVU)
+totalAwardWVUMod2 = lm(sqrt(totalAwardWVU) ~ studentGender + studentEthn + degreeF + degreeType + studentLoc + stateIndicator + proxStudentType + (highSchoolGPA^2)*highSchoolGPA.NA + prevColGPA + prevColGPA.NA + highestACT + highestACT.NA + totalSAT + totalSAT.NA + scoreGED + scoreGED.NA + affinityStatus + expectedFamContrib, data = finDataTableWVU)
 
 mmp(totalAwardWVUMod2, sd = TRUE)
 residualPlot(totalAwardWVUMod2)

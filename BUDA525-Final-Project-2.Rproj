@@ -432,4 +432,5 @@ fitResults <- predict(modWVUAid_3, newdata = finDataTableWVU_AL12[813,], type = 
 exp(fitResults)
 finDataTableWVU_AL12[813, 21]
 
+finDataTableWVU_AL12$predictedAwardWVU <-exp(predict(modWVUAid_3))
 ```

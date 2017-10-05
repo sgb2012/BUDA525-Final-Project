@@ -1,0 +1,53 @@
+Now deal with the blank values and NA's on variables within the finDataTableWVU dataset so that we can model these without excluding too many.
+```{r}
+
+finDataTableWVU$highSchoolGPA.NA <- is.na(finDataTableWVU$highSchoolGPA)
+finDataTableWVU$prevColGPA.NA <- is.na(finDataTableWVU$prevColGPA)
+finDataTableWVU$highestACT.NA <- is.na(finDataTableWVU$highestACT)
+finDataTableWVU$totalSAT.NA <- is.na(finDataTableWVU$totalSAT)
+finDataTableWVU$scoreGED.NA <- is.na(finDataTableWVU$scoreGED)
+finDataTableWVU$expectedFamContrib.NA <- is.na(finDataTableWVU$expectedFamContrib)
+finDataTableWVU$studentEthn.NA <-is.na(finDataTableWVU$studentEthn)
+finDataTableWVU$scaledAcademAchiev.NA <-is.na(finDataTableWVU$scaledAcademAchiev)
+
+finDataTableWVU$highSchoolGPA[is.na(finDataTableWVU$highSchoolGPA)] = 0
+finDataTableWVU$prevColGPA[is.na(finDataTableWVU$prevColGPA)] = 0
+finDataTableWVU$highestACT[is.na(finDataTableWVU$highestACT)] = 0
+finDataTableWVU$totalSAT[is.na(finDataTableWVU$totalSAT)] = 0
+finDataTableWVU$scoreGED[is.na(finDataTableWVU$scoreGED)] = 0
+finDataTableWVU$expectedFamContrib[is.na(finDataTableWVU$expectedFamContrib)] = 0
+finDataTableWVU$studentEthn[is.na(finDataTableWVU$studentEthn)] = "Unknown"
+finDataTableWVU$scaledAcademAchiev[is.na(finDataTableWVU$scaledAcademAchiev)] = 0
+summary(finDataTableWVU)
+```
+
+
+```{r}
+#basic plot
+totalAwardWVUMod1 = lm(totalAwardWVU ~ studentGender + studentEthn + degreeF + degreeType + studentLoc + stateIndicator + proxStudentType + highSchoolGPA*highSchoolGPA.NA + prevColGPA*prevColGPA.NA + highestACT*highestACT.NA + totalSAT*totalSAT.NA + scoreGED*scoreGED.NA + scaledAcademAchiev + affinityStatus + expectedFamContrib, data = finDataTableWVU)
+
+summary(totalAwardWVUMod1)
+#install the "alr4" package
+mmp(totalAwardWVUMod1, sd = TRUE)
+residualPlot(totalAwardWVUMod1)
+
+
+
+#all of the data is towards the "left" of the plot.  Need to spread it out more evenly
+        
+totalAwardWVUMod2 = lm(totalAwardWVU^0.2 ~ studentGender + studentEthn + degreeF + degreeType + studentLoc + stateIndicator + proxStudentType + highSchoolGPA*highSchoolGPA.NA + prevColGPA*prevColGPA.NA + highestACT*highestACT.NA + totalSAT*totalSAT.NA + scoreGED*scoreGED.NA + scaledAcademAchiev + affinityStatus + expectedFamContrib, data = finDataTableWVU)
+
+
+mmp(totalAwardWVUMod2, sd = TRUE)
+residualPlot(totalAwardWVUMod)
+summary(data$totalAwardWVU)
+
+#use the drop1 method to keep only the important variables
+M = step(totalAwardWVUMod2, direction = "backward")
+
+#show model with the important variables
+totalAwardWVUMod3 = lm(totalAwardWVU^0.2 ~ studentEthn + degreeF + studentLoc + highSchoolGPA + prevColGPA + highestACT + totalSAT + scoreGED + scaledAcademAchiev + affinityStatus + expectedFamContrib, data = finDataTableWVU)
+
+mmp(totalAwardWVUMod3, sd = TRUE)
+residualPlot(totalAwardWVUMod3)
+```

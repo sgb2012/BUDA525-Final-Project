@@ -34,7 +34,11 @@ summary(studentGender)
 levels(studentGender)
 
 #2. Ethnicity (studentEthn)
-studentEthn <- factor(firstTimeFresh$ETHNIC.CODE, labels = c("White", "Black", "Hispanic", "Asian", "Native", "Unknown"))
+tempStudentEthn <- firstTimeFresh$ETHNIC.CODE
+summary(tempStudentEthn)
+tempStudentEthn[is.na(tempStudentEthn)] = 7
+studentEthn <- as.factor(tempStudentEthn)
+studentEthn <- factor(tempStudentEthn, labels = c("White", "Black", "Hispanic", "Asian", "Native", "Unknown", "EMPTY"))
 summary(studentEthn)
 levels(studentEthn)
 
@@ -92,12 +96,16 @@ proxStudentType <- factor(proxStudentType, labels = c("Res or Out-of-State", "Lo
 
 #Affinity
 affinityStatus <- as.factor(firstTimeFresh$LEGACY.DESC == "" | firstTimeFresh$LEGACY.DESC == "*No Family Member is Alumnus")
-affinityStatus <- factor(affinityStatus, labels = c("Some Affinity", "No Affinity"))
+affinityStatus <- factor(affinityStatus, labels = c("No Affinity", "Some Affinity"))
 summary(affinityStatus)
 
 #Affordability attributes
-expectedFamContrib <- rescale(firstTimeFresh$EXPECTED.TOT.FAM.CONT..EFC, to = c(0,100))
+expectedFamContrib <- rescale(firstTimeFresh$EXPECTED.TOT.FAM.CONT..EFC, to = c(1,100))
 summary(expectedFamContrib)
+expectedFamContribF <- cut(expectedFamContrib, breaks = c(1, 19.8, 39.6, 59.4, 79.2, 100), right = FALSE, include.lowest=TRUE)
+expectedFamContribF <- factor(expectedFamContribF, labels = c("Very Low", "Low", "Medium","High", "Very High"))
+levels(expectedFamContribF)
+summary(expectedFamContribF)
 
 #Academic Achievement attributes
 #The academic achievement variables from the data are:
@@ -137,11 +145,11 @@ summary(scoreGED) # worked. Values 0 to 75.
 #scoreGED - Values 0 to 75.
 
 #Now that we have the 5 academic achievement variables formatted properly, we can scale the academic variables from 0 to 100 to create an even scale.
-highSchoolGPA <- rescale(highSchoolGPA, to = c(0,100))
-prevColGPA <- rescale(prevColGPA, to = c(0,100))
-highestACT <- rescale(highestACT, to = c(0,100))
-totalSAT <- rescale(totalSAT, to = c(0,100))
-scoreGED <- rescale(scoreGED, to = c(0,100))
+highSchoolGPA <- rescale(highSchoolGPA, to = c(1,100))
+prevColGPA <- rescale(prevColGPA, to = c(1,100))
+highestACT <- rescale(highestACT, to = c(1,100))
+totalSAT <- rescale(totalSAT, to = c(1,100))
+scoreGED <- rescale(scoreGED, to = c(1,100))
 
 #The 5 academic achievement variables are now each on a percentile scale of 0 to 100. We just need to get the (count of which 5 academic variables in each row that are not NA) and use this to divide the (sum of the 5 academic variables in each row) to create the SCALED.ACADEMIC.ACHIEVEMENT variable that will be between 0 to 100 for each student.
 
@@ -219,6 +227,7 @@ scoreGED -> finDataTableWVU$scoreGED
 scaledAcademAchiev -> finDataTableWVU$scaledAcademAchiev
 affinityStatus -> finDataTableWVU$affinityStatus
 expectedFamContrib -> finDataTableWVU$expectedFamContrib
+expectedFamContribF -> finDataTableWVU$expectedFamContribF
 
 summary(finDataTableWVU)
 
@@ -234,57 +243,103 @@ aidStudentWVU <- factor(finDataTableWVU$totalAwardWVU > 0, labels = c("Did not r
 aidStudentnonWVU <- factor(finDataTableWVU$totalAwardnonWVU > 0, labels = c("Did not received other aid", "Received other aid"))
 aidStudentPromScholar <- factor(finDataTableWVU$totalAwardPromScholar > 0, labels = c("Is not Promise", "Is Promise"))
 
+#Add these subsets of students to our table
 aidStudentWVU -> finDataTableWVU$aidStudentWVU
 aidStudentnonWVU -> finDataTableWVU$aidStudentnonWVU
 aidStudentPromScholar -> finDataTableWVU$aidStudentPromScholar
 
-#create new table with only students that have been awarded > 4000
-finDataTableWVU_AL1 <- subset(finDataTableWVU, totalAwardWVU > 40000)
-summary(finDataTableWVU_AL1)
+#Deal with NAs
+finDataTableWVU$highSchoolGPA.NA <- is.na(finDataTableWVU$highSchoolGPA)
+finDataTableWVU$prevColGPA.NA <- is.na(finDataTableWVU$prevColGPA)
+finDataTableWVU$highestACT.NA <- is.na(finDataTableWVU$highestACT)
+finDataTableWVU$totalSAT.NA <- is.na(finDataTableWVU$totalSAT)
+finDataTableWVU$scoreGED.NA <- is.na(finDataTableWVU$scoreGED)
+finDataTableWVU$expectedFamContrib.NA <- is.na(finDataTableWVU$expectedFamContrib)
+finDataTableWVU$scaledAcademAchiev.NA <- is.na(finDataTableWVU$scaledAcademAchiev)
 
-#AL2
-finDataTableWVU_AL2 <- subset(finDataTableWVU, totalAwardWVU > 20000 & totalAwardWVU <= 40000)
-summary(finDataTableWVU_AL2)
+finDataTableWVU$highSchoolGPA[is.na(finDataTableWVU$highSchoolGPA)] = 0
+finDataTableWVU$prevColGPA[is.na(finDataTableWVU$prevColGPA)] = finDataTableWVU$highestACT[is.na(finDataTableWVU$highestACT)] = 0
+finDataTableWVU$totalSAT[is.na(finDataTableWVU$totalSAT)] = 0
+finDataTableWVU$scoreGED[is.na(finDataTableWVU$scoreGED)] = 0
+finDataTableWVU$expectedFamContrib[is.na(finDataTableWVU$expectedFamContrib)] = 0
+finDataTableWVU$scaledAcademAchiev[is.na(finDataTableWVU$scaledAcademAchiev)] = 0
 
-#AL3
-finDataTableWVU_AL3 <- subset(finDataTableWVU, totalAwardWVU > 10000 & totalAwardWVU <= 20000)
-summary(finDataTableWVU_AL3)
+#model transformation
+#To avoid problems with negative values of the response variable, we add 0.5 to all observations
+pred <- finDataTableWVU$totalAwardWVU + 0.5
 
-#AL4
-finDataTableWVU_AL4 <- subset(finDataTableWVU, totalAwardWVU > 5000 & totalAwardWVU <= 10000)
-summary(finDataTableWVU_AL4)
+require(MASS)
+bc <- boxcox(modWVUAid)
+#The optimal transformation has a parameter close to -2
 
-#AL5
-finDataTableWVU_AL5 <- subset(finDataTableWVU, totalAwardWVU > 1000 & totalAwardWVU <= 5000)
-summary(finDataTableWVU_AL5)
+#find the approximate mle as the x-value that yields the maximum
+bc$x[bc$y==max(bc$y)]
 
-#AL6
-finDataTableWVU_AL6 <- subset(finDataTableWVU, totalAwardWVU > 500 & totalAwardWVU <= 1000)
-summary(finDataTableWVU_AL6)
+#call the function with a single parameter value to just evaluate the log-likelihood
+bc0 <- boxcox(modWVUAid, lambda = 1, plotit = TRUE) 
+bc1 <- boxcox(modWVUAid, lambda = 0, plotit = TRUE) 
+bc2 <- boxcox(modWVUAid, lambda = 2, plotit = TRUE) 
+bc3 <- boxcox(modWVUAid, lambda = -1, plotit = TRUE)
+bc4 <- boxcox(modWVUAid, lambda = -2, plotit = TRUE)
 
-#AL7  
-finDataTableWVU_AL7 <- subset(finDataTableWVU, totalAwardWVU > 100 & totalAwardWVU <= 500)
-summary(finDataTableWVU_AL7)
 
-#AL8  
-finDataTableWVU_AL8 <- subset(finDataTableWVU, totalAwardWVU > 0 & totalAwardWVU <= 100)
-summary(finDataTableWVU_AL8)
+modWVUAid <- lm(sqrt(pred) ~ studentGender + studentEthn + degreeF + proxStudentType + affinityStatus + expectedFamContrib + expectedFamContrib.NA + aidStudentnonWVU + aidStudentWVU + aidStudentPromScholar + affinityStatus + highestACT + highestACT.NA + totalSAT + totalSAT.NA + totalAwardnonWVU + totalAwardPromScholar, data = finDataTableWVU)
 
-#Descriptive stats
+TukeyHSD(aov(modWVUAid), ordered = TRUE, conf.level = 0.99, "proxStudentType")
 
-#create a function to summarize mean of the data
-summaryTable <- function(a = NULL, table1 = NULL, list1 = list(studentGender), func = mean) {
-  table1 <- tapply(a, list1, func)
-  print(table1)
-} 
+summary(modWVUAid)
+ncvTest(modWVUAid)
+plot(modWVUAid)
+mmp(modWVUAid)
 
-#Student attributes
-#studentGender, studentEthn, degreeF, degreeType, studentLoc, stateIndicator, proxStudentType
+summary.aov(modWVUAid)
+plot(totalAwardWVU ~ modWVUAid$fitted.values)
 
-for(i in 13:15){
-  print(colnames(finDataTableWVU[i]))
-  summaryTable(finDataTableWVU[,i], list1, func = mean)
-  writeLines("")
+#Jordan's model
+totalAwardWVUMod3 <- lm(sqrt(totalAwardWVU) ~ studentGender + studentEthn + degreeF + degreeType + studentLoc + stateIndicator + proxStudentType + scaledAcademAchiev + affinityStatus + expectedFamContrib, data = finDataTableWVU)
+summary(totalAwardWVUMod3)
+ncvTest(totalAwardWVUMod3)
+plot(totalAwardWVUMod3)
+mmp(totalAwardWVUMod3)
+
+par(mfrow = c(1, 2))
+plot(log(totalAwardWVU) ~ modWVUAid$fitted.values)
+plot(log(totalAwardWVU) ~ totalAwardWVUMod3$fitted.values)
+
+par(mfrow = c(1, 2))
+mmp(modWVUAid, sd = TRUE)
+mmp(totalAwardWVUMod3, sd = TRUE)
+
+#Assess and compare the predictive abilities of both models
+#To use 5 fold cross validation, we'll split the data into 5 subsets.
+
+dim(finDataTableWVU)
+finDataTableWVU$SampID = rep(5, dim(finDataTableWVU)[1])
+8590/5
+
+set.seed(1)
+set = sample(1:dim(finDataTableWVU)[1])  
+for(j in 1:4){
+  finDataTableWVU$SampID[set[((j-1)*1718+1):(j*1718)]]=j  
 }
 
-names(finDataTableWVU)
+RSS1 = 0
+RSS3 = 0
+for(i in 1:5){
+  sets = which(finDataTableWVU$SampID == i)
+  
+  #fit models with sets removed
+  model1 <- lm(sqrt(totalAwardWVU) ~ studentGender + studentEthn + degreeF + proxStudentType + affinityStatus + expectedFamContrib + expectedFamContrib.NA + aidStudentnonWVU + aidStudentWVU + aidStudentPromScholar + affinityStatus + highestACT + highestACT.NA + totalSAT + totalSAT.NA + totalAwardnonWVU + totalAwardPromScholar, data = finDataTableWVU[-sets,])
+  
+  model3 <- lm(sqrt(totalAwardWVU) ~ studentGender + studentEthn + degreeF + degreeType + studentLoc + stateIndicator + proxStudentType + scaledAcademAchiev + affinityStatus + expectedFamContrib, data = finDataTableWVU[-sets,])
+  
+  #calculate predictions on the sets that were removed
+  predModel1 <-predict(model1, newdata = finDataTableWVU[sets,])
+  predModel3 <-predict(model3, newdata = finDataTableWVU[sets,])
+ 
+  #Calculate the residual sum of squares 
+  RSS1 = RSS1 + sum((sqrt(finDataTableWVU$totalAwardWVU[sets]) - predModel1)^2)
+  RSS3 = RSS3 + sum((sqrt(finDataTableWVU$totalAwardWVU[sets]) - predModel3)^2)
+}
+RSS1
+RSS3

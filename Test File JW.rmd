@@ -1,0 +1,20 @@
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+dat <- read.table(file.choose(),sep="\t",header=T)
+
+getwd()
+##first set path to /group/bprice5
+### Image of how to
+data<- read.csv("/group/bprice5/1314C-08.CSV",header=T)
+head(data)
+summary(data)
+which(data$YELLOW.RIBBON.IND == "Y")  #show which columns have "Y" or yes in them.  Might want to remove these from the master dataset.
+
+
+```
+
+Deal with the NA's in the data

@@ -1,0 +1,70 @@
+Now deal with the blank values and NA's on variables within the finDataTableWVU dataset so that we can model these without excluding too many.
+```{r}
+
+finDataTableWVU$highSchoolGPA.NA <- is.na(finDataTableWVU$highSchoolGPA)
+finDataTableWVU$prevColGPA.NA <- is.na(finDataTableWVU$prevColGPA)
+finDataTableWVU$highestACT.NA <- is.na(finDataTableWVU$highestACT)
+finDataTableWVU$totalSAT.NA <- is.na(finDataTableWVU$totalSAT)
+finDataTableWVU$scoreGED.NA <- is.na(finDataTableWVU$scoreGED)
+finDataTableWVU$expectedFamContrib.NA <- is.na(finDataTableWVU$expectedFamContrib)
+finDataTableWVU$studentEthn.NA <-is.na(finDataTableWVU$studentEthn)
+finDataTableWVU$scaledAcademAchiev.NA <-is.na(finDataTableWVU$scaledAcademAchiev)
+
+finDataTableWVU$highSchoolGPA[is.na(finDataTableWVU$highSchoolGPA)] = 1
+finDataTableWVU$prevColGPA[is.na(finDataTableWVU$prevColGPA)] = 1
+finDataTableWVU$highestACT[is.na(finDataTableWVU$highestACT)] = 1
+finDataTableWVU$totalSAT[is.na(finDataTableWVU$totalSAT)] = 1
+finDataTableWVU$scoreGED[is.na(finDataTableWVU$scoreGED)] = 1
+finDataTableWVU$expectedFamContrib[is.na(finDataTableWVU$expectedFamContrib)] = 1
+finDataTableWVU$studentEthn[is.na(finDataTableWVU$studentEthn)] = "Unknown"
+finDataTableWVU$scaledAcademAchiev[is.na(finDataTableWVU$scaledAcademAchiev)] = 1
+summary(finDataTableWVU)
+```
+
+
+```{r}
+#basic plot
+totalAwardWVUMod1 = lm(totalAwardWVU ~ studentGender + studentEthn + degreeF + degreeType + studentLoc + stateIndicator + proxStudentType + highSchoolGPA + highSchoolGPA.NA + prevColGPA + prevColGPA.NA + highestACT + highestACT.NA + totalSAT + totalSAT.NA + scoreGED + scoreGED.NA + scaledAcademAchiev + affinityStatus + expectedFamContrib, data = finDataTableWVU)
+
+summary(totalAwardWVUMod1)
+#install the "alr4" package
+mmp(totalAwardWVUMod1, sd = TRUE)
+residualPlot(totalAwardWVUMod1)
+
+
+
+#all of the data is towards the "left" of the plot.  Need to spread it out more evenly.  We can use the powerTransform function to see how to best transform each numeric variable.
+summary(powerTransform(cbind(finDataTableWVU$highSchoolGPA, finDataTableWVU$prevColGPA, finDataTableWVU$highestACT, finDataTableWVU$totalSAT, finDataTableWVU$scoreGED,finDataTableWVU$scaledAcademAchiev)))
+
+#Now apply these to a new model.
+totalAwardWVUMod2 = lm(sqrt(totalAwardWVU) ~ studentGender + studentEthn + degreeF + degreeType + studentLoc + stateIndicator + proxStudentType + (highSchoolGPA^2)*highSchoolGPA.NA + prevColGPA + prevColGPA.NA + highestACT + highestACT.NA + totalSAT + totalSAT.NA + scoreGED + scoreGED.NA + affinityStatus + expectedFamContrib, data = finDataTableWVU)
+
+mmp(totalAwardWVUMod2, sd = TRUE)
+residualPlot(totalAwardWVUMod2)
+summary(data$totalAwardWVU2)
+
+#Remove the individual academic achievement variables
+totalAwardWVUMod3 = lm(sqrt(totalAwardWVU) ~ studentGender + studentEthn + degreeF + degreeType + studentLoc + stateIndicator + proxStudentType + scaledAcademAchiev + affinityStatus + expectedFamContrib, data = finDataTableWVU)
+mmp(totalAwardWVUMod3, sd = TRUE)
+residualPlot(totalAwardWVUMod3)
+summary(totalAwardWVUMod3)
+
+
+anova(totalAwardWVUMod2, totalAwardWVUMod3)
+#anova shows that the model that uses the scaledAcademicAchiev variable is able to model the data better.
+
+#use the drop1 method to remove variables that have little impact on the model.
+M = step(totalAwardWVUMod3, direction = "backward")
+
+#show model with the trimmed variables
+totalAwardWVUMod4 = lm(sqrt(totalAwardWVU)~ studentEthn + degreeF + studentLoc + proxStudentType + scaledAcademAchiev + affinityStatus + expectedFamContrib, data = finDataTableWVU)
+
+anova(totalAwardWVUMod3, totalAwardWVUMod4)
+# the p value of anova shows that trimming the values down did not make a big enough impact to need to remove them.  We can conclude that totalAwardWVUMod3 is our preferred model.
+
+
+#get final plot and summaries
+mmp(totalAwardWVUMod3)
+summary(totalAwardWVUMod3)
+```
+

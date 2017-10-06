@@ -1,0 +1,40 @@
+#test model predictions
+which(finDataTableWVU[,22] > 40000)
+
+fitResults <- predict(modWVUAid, newdata = finDataTableWVU[1355,], type = "response")
+(fitResults)^2
+finDataTableWVU[1355, 22]
+
+#run model on subset of students that received WVU aid
+#AL12 Total WVU Award > 0
+finDataTableWVU_AL12 <- subset(finDataTableWVU, totalAwardWVU > 0)
+dim(finDataTableWVU_AL12)
+summary(finDataTableWVU_AL12)
+sum(finDataTableWVU_AL12$totalAwardWVU)
+
+modWVUAid_1 <- lm(totalAwardWVU ~ studentGender + studentEthn + degreeF + studentLoc + proxStudentType + affinityStatus + expectedFamContrib + expectedFamContrib.NA + aidStudentnonWVU + aidStudentPromScholar + highestACT + highestACT.NA + totalSAT + totalSAT.NA + totalAwardnonWVU + totalAwardPromScholar, data = finDataTableWVU_AL12)
+summary(modWVUAid_1)
+anova(modWVUAid_1)
+#promScholar aid amount is not sig
+
+modWVUAid_2 <- lm(totalAwardWVU ~ studentGender + studentEthn + degreeF + studentLoc + proxStudentType + affinityStatus + expectedFamContrib + expectedFamContrib.NA + aidStudentnonWVU + aidStudentPromScholar + highestACT + highestACT.NA + totalSAT + totalSAT.NA + totalAwardnonWVU, data = finDataTableWVU_AL12)
+summary(modWVUAid_2)
+anova(modWVUAid_2)
+
+#model transformation
+require(MASS)
+bc <- boxcox(modWVUAid_2)
+#The optimal transformation has a parameter close to 0 - use log
+
+#find the approximate mle as the x-value that yields the maximum
+bc$x[bc$y==max(bc$y)]
+
+modWVUAid_3 <- lm(log(totalAwardWVU) ~ studentGender + studentEthn + degreeF + studentLoc + proxStudentType + affinityStatus + expectedFamContrib + expectedFamContrib.NA + aidStudentnonWVU + aidStudentPromScholar + highestACT + highestACT.NA + totalSAT + totalSAT.NA + totalAwardnonWVU, data = finDataTableWVU_AL12)
+summary(modWVUAid_3)
+anova(modWVUAid_3)
+
+ncvTest(modWVUAid_3)
+plot(modWVUAid_3)
+mmp(modWVUAid_3, sd = TRUE)
+
+residualPlot(modWVUAid_3)
